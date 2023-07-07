@@ -5,7 +5,8 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pytz
 from datetime import datetime
 
-import secrets
+import secrets # Archivo secrets.py con token, credenciales y IDs
+
 
 # Token de acceso al bot de telegram
 TELEGRAM_TOKEN = secrets.TELEGRAM_TOKEN
@@ -43,22 +44,26 @@ def manejar_gasto(update, context):
     if len(partes_gasto) >= 2:
         parte_monto = partes_gasto[0]
         if parte_monto[0] == '$':
-            monto = float(parte_monto[1:])
-            categoria = partes_gasto[1]
-            descripcion = ' '.join(partes_gasto[2:]) if len(partes_gasto) > 2 else ''
-            autor = update.message.from_user.username  # Obtener el nombre de usuario de Telegram
-            
-            # Guardar los datos en la hoja de cálculo
-            credenciales = ServiceAccountCredentials.from_json_keyfile_name(CREDENCIALES_GOOGLE_SHEETS)
-            cliente = gspread.authorize(credenciales)
-            hoja_calculo = cliente.open_by_key(ID_GOOGLE_SHEETS).sheet1
-            zona_horaria = pytz.timezone('America/Argentina/Buenos_Aires')
-            fecha_hora = datetime.now(tz=zona_horaria)
-            fecha_hora_str = fecha_hora.strftime('%Y-%m-%d %H:%M:%S')
-            fila_gasto = [fecha_hora_str, monto, categoria, descripcion, autor]
-            hoja_calculo.append_row(fila_gasto)
+            try:
+                monto = float(parte_monto[1:].replace(',', '.'))  # Reemplaza ',' por '.' y convierte a float
+                categoria = partes_gasto[1]
+                descripcion = ' '.join(partes_gasto[2:]) if len(partes_gasto) > 2 else ''
+                autor = update.message.from_user.username  # Obtener el nombre de usuario de Telegram
+                
+                # Guardar los datos en la hoja de cálculo
+                credenciales = ServiceAccountCredentials.from_json_keyfile_name(CREDENCIALES_GOOGLE_SHEETS)
+                cliente = gspread.authorize(credenciales)
+                hoja_calculo = cliente.open_by_key(ID_GOOGLE_SHEETS).sheet1
+                zona_horaria = pytz.timezone('America/Argentina/Buenos_Aires')
+                fecha_hora = datetime.now(tz=zona_horaria)
+                fecha_hora_str = fecha_hora.strftime('%Y-%m-%d %H:%M:%S')
+                fila_gasto = [fecha_hora_str, monto, categoria, descripcion, autor]
+                hoja_calculo.append_row(fila_gasto)
 
-            context.bot.send_message(chat_id=update.effective_chat.id, text='Gasto registrado correctamente.')
+                context.bot.send_message(chat_id=update.effective_chat.id, text='Gasto registrado correctamente.')
+            except ValueError:
+                context.bot.send_message(chat_id=update.effective_chat.id, text='El monto del gasto no tiene un formato válido. Asegúrate de ingresar un número decimal con el formato correcto: $0000.00')
+        
         else:
             context.bot.send_message(chat_id=update.effective_chat.id, text='El gasto no ha sido ingresado correctamente. Inténtalo nuevamente. Recuerda ingresar los datos en este orden y de la siguiente manera: $0000.00, Categoría, Descripción (opcional).')
     else:
