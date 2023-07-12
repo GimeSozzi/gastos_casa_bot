@@ -3,13 +3,17 @@
 Este proyecto consiste en un bot de Telegram llamado "Gastos Casa Bot" que permite a los usuarios ingresar y registrar gastos en una planilla de Google Sheets. El bot recibe los gastos a través de mensajes enviados por los usuarios y los guarda en la planilla con la siguiente información: fecha, monto, categoría y descripción.
 
 ## Requisitos
+
 Antes de utilizar el bot, es necesario realizar las siguientes configuraciones:
 
 1. Crear un archivo secrets.py y almacenar en él la siguiente información:
 
 `TELEGRAM_TOKEN = "TOKEN_DEL_BOT_DE_TELEGRAM"`
+
 `CREDENCIALES_GOOGLE_SHEETS = "RUTA_AL_ARCHIVO_DE_CREDENCIALES_JSON"`
+
 `ID_GOOGLE_SHEETS = "ID_DE_LA_PLANILLA_DE_GOOGLE_SHEETS"`
+
 `USUARIOS_AUTORIZADOS = ["ID_USUARIO_1", "ID_USUARIO_2", ...]`
 
 Asegúrate de reemplazar los valores entre comillas con la información correspondiente:
