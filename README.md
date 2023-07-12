@@ -12,7 +12,11 @@ Antes de utilizar el bot, es necesario realizar las siguientes configuraciones:
 `ID_GOOGLE_SHEETS = "ID_DE_LA_PLANILLA_DE_GOOGLE_SHEETS"`
 `USUARIOS_AUTORIZADOS = ["ID_USUARIO_1", "ID_USUARIO_2", ...]`
 
-Asegúrate de reemplazar los valores entre comillas con la información correspondiente. El TOKEN_DEL_BOT_DE_TELEGRAM es el token de acceso al bot de Telegram, las CREDENCIALES_GOOGLE_SHEETS son las credenciales de la cuenta de servicio de Google Sheets en formato JSON, el ID_GOOGLE_SHEETS es el ID de la planilla de Google Sheets donde se guardarán los gastos y los ID_USUARIO_X son los IDs de los usuarios autorizados a utilizar el bot.
+Asegúrate de reemplazar los valores entre comillas con la información correspondiente:
+- El TOKEN_DEL_BOT_DE_TELEGRAM es el token de acceso al bot de Telegram. 
+- Las CREDENCIALES_GOOGLE_SHEETS son las credenciales de la cuenta de servicio de Google Sheets en formato JSON.
+- El ID_GOOGLE_SHEETS es el ID de la planilla de Google Sheets donde se guardarán los gastos
+- Los ID_USUARIO_X son los IDs de los usuarios autorizados a utilizar el bot.
 
 2. Crear un entorno virtual y activarlo.
 
