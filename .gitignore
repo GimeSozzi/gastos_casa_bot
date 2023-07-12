@@ -176,6 +176,12 @@ pyrightconfig.json
 # Archivo de configuración con tokens, credenciales y datos sensibles
 secrets.py
 
-gastoscasabot-333ee557d0b4.json
+# Archivo de prueba para actualizaciones
+pruebas_gastos_casa_bot.py
 
-gastoscasalogo.jpg
+# Otros
+gastoscasabot-333ee557d0b4.json
+mes_actual.txt
+mesyanio_actual.txt
+pruebas_gastos_casa_bot.py
+test.py
