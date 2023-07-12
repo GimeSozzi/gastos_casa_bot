@@ -14,11 +14,11 @@ Antes de utilizar el bot, es necesario realizar las siguientes configuraciones:
 
 Asegúrate de reemplazar los valores entre comillas con la información correspondiente. El TOKEN_DEL_BOT_DE_TELEGRAM es el token de acceso al bot de Telegram, las CREDENCIALES_GOOGLE_SHEETS son las credenciales de la cuenta de servicio de Google Sheets en formato JSON, el ID_GOOGLE_SHEETS es el ID de la planilla de Google Sheets donde se guardarán los gastos y los ID_USUARIO_X son los IDs de los usuarios autorizados a utilizar el bot.
 
-2. Instalar las dependencias necesarias ejecutando el siguiente comando:
+2. Crear un entorno virtual y activarlo.
 
+3. Instalar las dependencias desde el archivo requirements.txt:
 
-`pip install python-telegram-bot gspread oauth2client pytz`
-
+`pip install -r requirements.txt`
 
 Asegúrate de tener instalado Python y pip en tu sistema.
 
