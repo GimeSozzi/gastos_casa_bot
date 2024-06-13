@@ -63,8 +63,8 @@ El bot verificará tu ID de usuario y te enviará un mensaje de bienvenida junto
 - Descripción: Finalmente, ingresa una descripción opcional para el gasto.
 
 `Pago boleta de electricidad`
+4. El bot guardará automáticamente los datos del gasto en la planilla de Google Sheets y te enviará un mensaje de confirmación con todos los detalles del gasto.
 
-4. El bot guardará automáticamente los datos del gasto en la planilla de Google Sheets y te enviará un mensaje de confirmación.
 
 ## Ejemplo de Interacción
 
