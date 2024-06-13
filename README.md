@@ -47,19 +47,32 @@ Para utilizar el bot, sigue los siguientes pasos:
 El bot verificará tu ID de usuario y te enviará un mensaje de bienvenida junto con el formato de ingreso de los gastos.
 
 
-3. Ingresa los gastos en el siguiente formato y orden: $0000.00, Categoría, Descripción (opcional).
+3. Ingresa los gastos en el siguiente orden: monto, forma de pago, categoría, y descripción (opcional).
 
-Por ejemplo:
+**Paso a paso:**
 
-`$50.00, Alimentación, Compra en el supermercado`
+- Monto: Ingresa el monto del gasto en el formato $0000.00. Asegúrate de incluir el símbolo de peso $ antes del monto.
 
-Asegúrate de incluir el símbolo de peso $ antes del monto.
+`$50.00`
 
+- Forma de Pago: El bot te mostrará opciones para seleccionar la forma de pago. Las opciones son: EFECTIVO, DÉBITO/TRANSFERENCIA, CRÉDITO.
+
+- Categoría: El bot te mostrará opciones para seleccionar la categoría del gasto. Las categorías disponibles son: AUTOS, BEBÉS, CASA/OBRA, COMBUSTIBLE, COMIDA, DELIVERY, IMPUESTOS, PRÉSTAMOS, RESTAURANT, ROPA/CALZADO, SALUD, SEGUROS, SERVICIOS, SUPERMERCADO, TARJETAS, VARIOS/OTROS, VIAJES.
+
+
+- Descripción: Finalmente, ingresa una descripción opcional para el gasto.
+
+`Pago boleta de electricidad`
 
 4. El bot guardará automáticamente los datos del gasto en la planilla de Google Sheets y te enviará un mensaje de confirmación.
 
+## Ejemplo de Interacción
 
+1. Envía /start al bot en Telegram.
+2. Ingresa el monto: $50.00.
+3. Selecciona la forma de pago: EFECTIVO.
+4. Selecciona la categoría: COMIDA.
+5. Ingresa una descripción opcional: Compra en el supermercado.
+6. Recibirás un mensaje de confirmación indicando que el gasto ha sido registrado correctamente.
 
-
-
-
+¡Listo! Ahora tus gastos estarán organizados y almacenados de manera eficiente en Google Sheets.
