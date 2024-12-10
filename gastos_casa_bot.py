@@ -5,6 +5,8 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pytz
 from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 import secrets  # Archivo secrets.py con token, credenciales y IDs
 
@@ -33,6 +35,9 @@ CATEGORIAS_GASTOS = [
 # Formas de pago
 FORMAS_PAGO = ['EFECTIVO', 'DÉBITO/TRANSFERENCIA', 'CRÉDITO']
 
+# Inicializar el Scheduler
+scheduler = BackgroundScheduler()
+
 # Funcion para manejar el comando /start
 def iniciar(update, context):
     id_usuario = update.message.from_user.id
@@ -57,20 +62,24 @@ def manejar_mensaje(update, context):
 
 # Función para manejar el ingreso del monto
 def manejar_monto(update, context):
-    texto_gasto = update.message.text
-    parte_monto = texto_gasto.strip()
+    texto_gasto = update.message.text.strip()
 
-    if parte_monto[0] == '$':
+    # Verificar si el monto comienza con el signo "$"
+    if texto_gasto.startswith('$'):
         try:
-            monto = float(parte_monto[1:].replace(',', '.'))  # Reemplaza ',' por '.' y convierte a float
+            # Extraer el número y convertirlo a float
+            monto = float(texto_gasto[1:].replace(',', '.'))  # Ignorar el "$" y convertir la coma decimal a punto
             context.user_data['monto'] = monto
             context.user_data['fase'] = 'forma_pago'
             context.user_data['monto_message_id'] = update.message.message_id  # Guardar el ID del mensaje del monto
             mostrar_formas_pago(update, context)
         except ValueError:
-            context.bot.send_message(chat_id=update.effective_chat.id, text='El monto del gasto no tiene un formato válido. Asegúrate de ingresar un número decimal con el formato correcto: $0000.00')
+            # Error si no se puede convertir el número
+            context.bot.send_message(chat_id=update.effective_chat.id, text='El monto del gasto no tiene un formato válido. Asegúrate de ingresarlo como "$0000.00".')
     else:
-        context.bot.send_message(chat_id=update.effective_chat.id, text='El gasto no ha sido ingresado correctamente. Inténtalo nuevamente. Recuerda ingresar los datos en este orden y de la siguiente manera: $0000.00')
+        # Error si no comienza con el signo "$"
+        context.bot.send_message(chat_id=update.effective_chat.id, text='Por favor, ingresa el monto en el formato correcto: "$0000.00".')
+
 
 # Función para mostrar las formas de pago
 def mostrar_formas_pago(update, context):
@@ -126,12 +135,23 @@ def guardar_gasto(update, context):
     try:
         credenciales = ServiceAccountCredentials.from_json_keyfile_name(CREDENCIALES_GOOGLE_SHEETS)
         cliente = gspread.authorize(credenciales)
-        hoja_calculo = cliente.open_by_key(ID_GOOGLE_SHEETS).sheet1
+        hoja_calculo = cliente.open_by_key(ID_GOOGLE_SHEETS)
+        
         zona_horaria = pytz.timezone('America/Argentina/Buenos_Aires')
         fecha_hora = datetime.now(tz=zona_horaria)
+        mes_actual = fecha_hora.strftime('%B %Y')
+
+        # Verificar si existe la hoja del mes actual, si no, crearla
+        try:
+            hoja_mes_actual = hoja_calculo.worksheet(mes_actual)
+        except gspread.exceptions.WorksheetNotFound:
+            hoja_mes_actual = hoja_calculo.add_worksheet(title=mes_actual, rows="100", cols="20")
+            # Agregar encabezados
+            hoja_mes_actual.append_row(["Fecha", "Monto", "Forma de Pago", "Categoría", "Descripción", "Autor"])
+
         fecha_hora_str = fecha_hora.strftime('%Y-%m-%d %H:%M:%S')
         fila_gasto = [fecha_hora_str, monto, forma_pago, categoria, descripcion, autor]
-        hoja_calculo.append_row(fila_gasto)
+        hoja_mes_actual.append_row(fila_gasto)
 
         context.bot.send_message(chat_id=update.effective_chat.id, text=f'Gasto registrado correctamente.\n\nDetalles del gasto:\nMonto: ${monto}\nForma de Pago: {forma_pago}\nCategoría: {categoria}\nDescripción: {descripcion}')
         
@@ -142,6 +162,86 @@ def guardar_gasto(update, context):
         context.bot.send_message(chat_id=update.effective_chat.id, text=f'Error al registrar el gasto: {e}')
 
     context.user_data['fase'] = 'monto'  # Resetear la fase a 'monto' para el próximo gasto
+
+# Función para calcular y enviar el resumen de gastos en cualquier momento
+def resumen(update, context):
+    id_usuario = update.message.from_user.id
+    if id_usuario in USUARIOS_AUTORIZADOS:
+        try:
+            credenciales = ServiceAccountCredentials.from_json_keyfile_name(CREDENCIALES_GOOGLE_SHEETS)
+            cliente = gspread.authorize(credenciales)
+            hoja_calculo = cliente.open_by_key(ID_GOOGLE_SHEETS)
+
+            hoja = hoja_calculo.sheet1  # Trabaja siempre con "Hoja 1"
+            datos = hoja.get_all_records()
+
+            # Obtener el mes y año actuales
+            zona_horaria = pytz.timezone('America/Argentina/Buenos_Aires')
+            fecha_actual = datetime.now(tz=zona_horaria)
+            mes_actual = fecha_actual.month
+            anio_actual = fecha_actual.year
+
+            # Inicializar totales por forma de pago
+            totales_forma_pago = {'EFECTIVO': 0.0, 'DÉBITO/TRANSFERENCIA': 0.0, 'CRÉDITO': 0.0, 'SIN ESPECIFICAR': 0.0}
+
+            # Inicializar totales por categoría
+            totales_categorias = {categoria: 0.0 for categoria in CATEGORIAS_GASTOS}
+
+            # Procesar los datos
+            for fila in datos:
+                try:
+                    # Validar si la fila tiene un formato válido
+                    if not fila['Fecha'] or not fila['Monto'] or not fila['Categoria']:
+                        print(f"Ignorando fila no válida: {fila}")
+                        continue  # Saltar filas con datos irrelevantes
+
+                    # Limpieza del valor de Monto
+                    monto_texto = fila.get('Monto', '').strip()  # Eliminar espacios
+                    monto_limpio = monto_texto.replace('$', '').replace('.', '').replace(',', '.')
+                    monto = float(monto_limpio)  # Convertir el texto limpio a número flotante
+
+                    # Verificar el formato de la fecha y filtrar por mes y año actuales
+                    fecha = datetime.strptime(fila['Fecha'], '%Y-%m-%d %H:%M:%S')
+                    if fecha.month != mes_actual or fecha.year != anio_actual:
+                        continue  # Ignorar filas de otros meses
+
+                    # Manejar valores faltantes en "Forma de Pago"
+                    forma_pago = fila.get('Forma de Pago', '').strip()
+                    if not forma_pago:
+                        forma_pago = "SIN ESPECIFICAR"  # Asignar un valor por defecto si está vacío
+
+                    categoria = fila.get('Categoria', '').strip()
+
+                    # Sumar al total por forma de pago
+                    if forma_pago in totales_forma_pago:
+                        totales_forma_pago[forma_pago] += monto
+
+                    # Sumar al total por categoría
+                    if categoria in totales_categorias:
+                        totales_categorias[categoria] += monto
+                except (ValueError, KeyError) as e:
+                    print(f"Error procesando la fila: {fila}, Detalle: {e}")
+                    continue  # Ignorar filas con errores
+
+            # Crear el mensaje de resumen
+            mensaje_resumen = f"Resumen de gastos de {fecha_actual.strftime('%B %Y')}:\n\n"
+
+            # Agregar totales por forma de pago
+            mensaje_resumen += "Totales por Forma de Pago:\n"
+            for forma_pago, total in totales_forma_pago.items():
+                mensaje_resumen += f"  {forma_pago}: ${total:.2f}\n"
+
+            # Agregar totales por categorías
+            mensaje_resumen += "\nTotales por Categorías:\n"
+            for categoria, total in totales_categorias.items():
+                mensaje_resumen += f"  {categoria}: ${total:.2f}\n"
+
+            # Enviar el mensaje
+            context.bot.send_message(chat_id=update.effective_chat.id, text=mensaje_resumen)
+        except Exception as e:
+            context.bot.send_message(chat_id=update.effective_chat.id, text=f"Error al calcular el resumen de gastos: {e}")
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="No estás autorizado para usar este comando.")
 
 # Configurar el Updater con el token del bot de Telegram
 actualizador = Updater(token=TELEGRAM_TOKEN, use_context=True)
@@ -164,6 +264,13 @@ despachador.add_handler(manejador_callback_forma_pago)
 # Manejador para la selección de categorías
 manejador_callback_categoria = CallbackQueryHandler(seleccionar_categoria, pattern='^(' + '|'.join(CATEGORIAS_GASTOS) + ')$')
 despachador.add_handler(manejador_callback_categoria)
+
+# Manejador para verificar resumen manualmente
+manejador_resumen = CommandHandler('resumen', resumen)
+despachador.add_handler(manejador_resumen)
+
+# Iniciar el Scheduler
+scheduler.start()
 
 # Iniciar el bot
 actualizador.start_polling()
