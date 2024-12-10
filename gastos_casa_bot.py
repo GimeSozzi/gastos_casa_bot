@@ -135,26 +135,15 @@ def guardar_gasto(update, context):
     try:
         credenciales = ServiceAccountCredentials.from_json_keyfile_name(CREDENCIALES_GOOGLE_SHEETS)
         cliente = gspread.authorize(credenciales)
-        hoja_calculo = cliente.open_by_key(ID_GOOGLE_SHEETS)
-        
+        hoja_calculo = cliente.open_by_key(ID_GOOGLE_SHEETS).sheet1
         zona_horaria = pytz.timezone('America/Argentina/Buenos_Aires')
         fecha_hora = datetime.now(tz=zona_horaria)
-        mes_actual = fecha_hora.strftime('%B %Y')
-
-        # Verificar si existe la hoja del mes actual, si no, crearla
-        try:
-            hoja_mes_actual = hoja_calculo.worksheet(mes_actual)
-        except gspread.exceptions.WorksheetNotFound:
-            hoja_mes_actual = hoja_calculo.add_worksheet(title=mes_actual, rows="100", cols="20")
-            # Agregar encabezados
-            hoja_mes_actual.append_row(["Fecha", "Monto", "Forma de Pago", "Categoría", "Descripción", "Autor"])
-
         fecha_hora_str = fecha_hora.strftime('%Y-%m-%d %H:%M:%S')
         fila_gasto = [fecha_hora_str, monto, forma_pago, categoria, descripcion, autor]
-        hoja_mes_actual.append_row(fila_gasto)
+        hoja_calculo.append_row(fila_gasto)
 
         context.bot.send_message(chat_id=update.effective_chat.id, text=f'Gasto registrado correctamente.\n\nDetalles del gasto:\nMonto: ${monto}\nForma de Pago: {forma_pago}\nCategoría: {categoria}\nDescripción: {descripcion}')
-        
+
         # Eliminar mensajes de monto y descripción
         context.bot.delete_message(chat_id=update.effective_chat.id, message_id=context.user_data['monto_message_id'])
         context.bot.delete_message(chat_id=update.effective_chat.id, message_id=context.user_data['descripcion_message_id'])
