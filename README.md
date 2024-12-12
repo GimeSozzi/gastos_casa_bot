@@ -81,6 +81,7 @@ El resumen incluye los siguientes detalles:
 Totales por cada forma de pago: EFECTIVO, DÉBITO/TRANSFERENCIA, CRÉDITO.
 Totales por cada categoría de gasto.
 
+```
 Resumen de gastos de Diciembre 2024:
 
 Totales por Forma de Pago:
@@ -93,6 +94,7 @@ Totales por Categorías:
   SUPERMERCADO: $5000.00
   DELIVERY: $500.00
   VARIOS/OTROS: $1500.00
+```
 
 ## Ejemplo de Interacción Completa
 
@@ -104,7 +106,7 @@ Totales por Categorías:
 6. Recibirás un mensaje de confirmación indicando que el gasto ha sido registrado correctamente.
 7. Más adelante:
 
-Usa /resumen para obtener un resumen de gastos en cualquier momento.
+Usa `/resumen` para obtener un resumen de gastos en cualquier momento.
 El bot enviará automáticamente el resumen mensual al final del mes.
 
 ¡Listo! Ahora tus gastos estarán organizados y resumidos de manera eficiente en Google Sheets. 😊
