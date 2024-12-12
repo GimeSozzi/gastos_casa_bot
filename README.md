@@ -67,7 +67,34 @@ El bot verificará tu ID de usuario y te enviará un mensaje de bienvenida junto
 4. El bot guardará automáticamente los datos del gasto en la planilla de Google Sheets y te enviará un mensaje de confirmación con todos los detalles del gasto.
 
 
-## Ejemplo de Interacción
+## Nueva Funcionalidad: Resumen de Gastos
+
+El bot ahora incluye una funcionalidad para generar un resumen mensual de gastos, dividido por formas de pago y categorías. Este resumen puede generarse de manera manual o automática:
+
+Resumen manual
+Los usuarios autorizados pueden obtener un resumen en cualquier momento usando el comando:
+
+`/resumen`
+
+El resumen incluye los siguientes detalles:
+
+Totales por cada forma de pago: EFECTIVO, DÉBITO/TRANSFERENCIA, CRÉDITO.
+Totales por cada categoría de gasto.
+
+Resumen de gastos de Diciembre 2024:
+
+Totales por Forma de Pago:
+  EFECTIVO: $5000.00
+  DÉBITO/TRANSFERENCIA: $8000.00
+  CRÉDITO: $3000.00
+
+Totales por Categorías:
+  COMIDA: $6000.00
+  SUPERMERCADO: $5000.00
+  DELIVERY: $500.00
+  VARIOS/OTROS: $1500.00
+
+## Ejemplo de Interacción Completa
 
 1. Envía /start al bot en Telegram.
 2. Ingresa el monto: $50.00.
@@ -75,5 +102,10 @@ El bot verificará tu ID de usuario y te enviará un mensaje de bienvenida junto
 4. Selecciona la categoría: COMIDA.
 5. Ingresa una descripción opcional: Compra en el supermercado.
 6. Recibirás un mensaje de confirmación indicando que el gasto ha sido registrado correctamente.
+7. Más adelante:
 
-¡Listo! Ahora tus gastos estarán organizados y almacenados de manera eficiente en Google Sheets.
+Usa /resumen para obtener un resumen de gastos en cualquier momento.
+El bot enviará automáticamente el resumen mensual al final del mes.
+
+¡Listo! Ahora tus gastos estarán organizados y resumidos de manera eficiente en Google Sheets. 😊
+ 
